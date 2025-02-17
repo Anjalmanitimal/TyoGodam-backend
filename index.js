@@ -16,7 +16,7 @@ const authRoutes = require("./routes/auth");
 const spaceRoutes = require("./routes/spaces"); // Now correctly handled
 
 app.use("/api/auth", authRoutes);
-app.use("/api/spaces", spaceRoutes); // Space routes properly handled
+app.use("/spaces", spaceRoutes); // Space routes properly handled
 
 // Sample route to check if server is working
 app.get("/", (req, res) => {
