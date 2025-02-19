@@ -15,11 +15,13 @@ app.use(express.json()); // Parse JSON bodies
 // ✅ Import routes for authentication and spaces
 const authRoutes = require("./routes/auth");
 const spaceRoutes = require("./routes/spaces"); // Make sure your spaces route is correctly imported
+const bookingRoutes = require("./routes/bookingRoutes");
 
 // Use routes in your app
 app.use("/api/auth", authRoutes); // Authentication routes
 app.use("/spaces", spaceRoutes); // Spaces routes
 app.use("/uploads", express.static("uploads"));
+app.use("/bookings", bookingRoutes);
 
 // Sample route to check if server is running
 app.get("/", (req, res) => {

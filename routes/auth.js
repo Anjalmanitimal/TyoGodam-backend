@@ -40,6 +40,7 @@ router.post("/register", async (req, res) => {
 });
 
 // ✅ User Login Route (Includes Role)
+// ✅ User Login Route (Includes Role and User Object)
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -68,15 +69,18 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({ 
-      message: "Login successful", 
-      token, 
-      role: user.role  // ✅ Send role in response
+    // Send response with token, role, and user data
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      role: user.role,  // Include role
+      user: { id: user.id, email: user.email },  // Include user object with id and email
     });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Error during login" });
   }
 });
+
 
 module.exports = router;
