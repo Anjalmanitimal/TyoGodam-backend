@@ -1,21 +1,14 @@
+// models/User.js
 module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define("User", {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
+  const User = sequelize.define('User', {
     name: {
       type: DataTypes.STRING,
-      allowNull: false, // Add name field
+      allowNull: false,
     },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true,
-      },
+      unique: true, // Email should be unique
     },
     password: {
       type: DataTypes.STRING,
@@ -24,9 +17,13 @@ module.exports = (sequelize, DataTypes) => {
     role: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "User", // "User" or "Space Owner"
     },
   });
+
+  // Association: A user can have many spaces
+  User.associate = (models) => {
+    User.hasMany(models.Space, { foreignKey: 'ownerId', as: 'spaces' });
+  };
 
   return User;
 };

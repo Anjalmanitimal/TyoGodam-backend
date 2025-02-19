@@ -1,37 +1,66 @@
+// routes/spaces.js
 const express = require("express");
 const router = express.Router();
-const { Space } = require("../models"); // Import your Space model
-const authMiddleware = require("../middleware/auth"); // Import authentication middleware
+const multer = require("multer");
+const path = require("path");
+const { Space } = require("../models");
+const authMiddleware = require("../middleware/auth");
 
-// Create a new space (POST)
-router.post("/", authMiddleware, async (req, res) => {
+// Configure Multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Store images in 'uploads' folder
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Use timestamp for unique file names
+  },
+});
+
+const upload = multer({ storage });
+
+// Ensure 'uploads' folder exists
+const fs = require("fs");
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
+// Serve uploaded images
+router.use("/uploads", express.static("uploads"));
+
+// POST route to create a new space (with image upload)
+router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
   try {
     const { name, location, size, price } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null; // Store image path
 
-    if (!name || !location || !size || !price) {
-      return res.status(400).json({ error: "All fields are required" });
-    }
+    const newSpace = await Space.create({
+      name,
+      location,
+      size,
+      price,
+      imageUrl,
+      ownerId: req.user.id, // The space is owned by the logged-in user
+    });
 
-    const newSpace = await Space.create({ name, location, size, price });
-    res.status(201).json(newSpace);
+    res.status(201).json(newSpace); // Return newly created space
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Error creating space");
+    console.error("Error creating space:", error);
+    res.status(500).send("Error adding space");
   }
 });
 
-// Get all spaces
+// GET route to fetch all spaces
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const spaces = await Space.findAll();
-    res.json(spaces);
+    res.json(spaces); // Return all spaces
   } catch (error) {
     console.error(error);
     res.status(500).send("Error fetching spaces");
   }
 });
 
-// Update a space (PUT)
+// PUT route to update a space by ID
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -48,24 +77,24 @@ router.put("/:id", authMiddleware, async (req, res) => {
     space.price = price;
     await space.save();
 
-    res.json(space);
+    res.json(space); // Return updated space
   } catch (error) {
     console.error(error);
     res.status(500).send("Error updating space");
   }
 });
 
-// Delete a space (DELETE)
+// DELETE route to delete a space by ID
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const space = await Space.findByPk(id);
     if (!space) {
       return res.status(404).send("Space not found");
     }
 
-    await space.destroy();
+    await space.destroy(); // Delete space from DB
     res.json({ message: "Space deleted successfully" });
   } catch (error) {
     console.error(error);
